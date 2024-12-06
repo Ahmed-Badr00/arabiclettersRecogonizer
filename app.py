@@ -11,9 +11,9 @@ app = Flask(__name__)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load models
-googlenet = torch.load("models/googlenet.pth", map_location=device)
-swin_transformer = torch.load("models/swin_transformer.pth", map_location=device)
-googlenet_se = torch.load("models/googlenet_se.pth", map_location=device)
+googlenet = torch.load("models/googlenett_weights.pth", map_location=device)
+swin_transformer = torch.load("models/swin_transformer_weights.pth", map_location=device)
+googlenet_se = torch.load("models/googlenet_se_weights.pth", map_location=device)
 
 googlenet.eval()
 swin_transformer.eval()
