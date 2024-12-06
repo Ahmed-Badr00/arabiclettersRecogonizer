@@ -1,31 +1,206 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arabic Letter Recognition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1e3c72;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .course-details {
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            color: black;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            background-color: #2a5298;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        button {
+            background-color: #2a5298;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+            margin-right: 5px;
+        }
+        button.delete {
+            background-color: red;
+        }
+        button.delete:hover {
+            background-color: darkred;
+        }
+        button:hover {
+            background-color: #1e3c72;
+        }
+        img {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #result {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .students {
+            margin-top: 20px;
+            color: white;
+            text-align: center;
+        }
+        .students p {
+            margin: 5px 0;
+            font-size: 1rem;
+        }
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
+    <img src="static/images/logo.png" alt="Logo" class="logo" />
     <h1>Arabic Letter Recognition</h1>
-    <input type="file" id="fileInput" />
-    <button onclick="submitImage()">Submit</button>
-    <h3>Prediction:</h3>
-    <p id="result"></p>
+    <div class="course-details">
+        <p><strong>CSCE4603: Fundamental of Computer Vision</strong></p>
+        <p><strong>Supervised by:</strong> Prof. Mohamed Sedky</p>
+    </div>
+    <div class="container">
+        <label for="fileInput">Upload an Image</label>
+        <input type="file" id="fileInput" accept="image/*" onchange="uploadImage()" />
+        <br>
+        <img id="renderedImage" style="display: none;" />
+        <br>
+        <div class="buttons-container">
+            <button onclick="submitImage()">Submit</button>
+            <button class="delete" onclick="clearImage()">Delete</button>
+        </div>
+        <p id="result"></p>
+    </div>
+
+    <div class="students">
+        <p>Project by:</p>
+        <p>Ahmed Jaheen <strong>(ID: 900212943)</strong></p>
+        <p>Ahmed Badr <strong>(ID: 900202868)</strong></p>
+    </div>
 
     <script>
-        async function submitImage() {
-            const fileInput = document.getElementById('fileInput');
+        async function uploadImage() {
+            const fileInput = document.getElementById("fileInput");
             const file = fileInput.files[0];
+            const renderedImage = document.getElementById("renderedImage");
+
+            if (!file) {
+                alert("Please upload an image first!");
+                return;
+            }
+
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append("file", file);
 
-            const response = await fetch('http://127.0.0.1:5000/predict', {
-                method: 'POST',
-                body: formData
-            });
+            try {
+                const response = await fetch("http://127.0.0.1:5000/upload", {
+                    method: "POST",
+                    body: formData,
+                });
 
-            const data = await response.json();
-            document.getElementById('result').innerText = `Predicted Letter: ${data.prediction}`;
+                if (response.ok) {
+                    const data = await response.json();
+                    renderedImage.src = data.image_url + "?t=" + new Date().getTime(); // Prevent caching
+                    renderedImage.style.display = "block"; // Show the rendered image
+                } else {
+                    alert("Error: Unable to render the image.");
+                }
+            } catch (error) {
+                alert("Error: Unable to connect to the server.");
+            }
+        }
+
+        async function submitImage() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+            const resultText = document.getElementById("result");
+
+            if (!file) {
+                alert("Please upload an image first!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/predict", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultText.innerText = `Predicted Letter: ${data.prediction}`;
+                } else {
+                    resultText.innerText = "Error: Unable to predict. Please try again.";
+                }
+            } catch (error) {
+                resultText.innerText = "Error: Unable to connect to the server.";
+            }
+        }
+
+        function clearImage() {
+            const renderedImage = document.getElementById("renderedImage");
+            const resultText = document.getElementById("result");
+            const fileInput = document.getElementById("fileInput");
+
+            renderedImage.style.display = "none"; // Hide the image
+            renderedImage.src = ""; // Clear the image source
+            resultText.innerText = ""; // Clear the result text
+            fileInput.value = ""; // Reset the file input
         }
     </script>
 </body>
 </html>
-
