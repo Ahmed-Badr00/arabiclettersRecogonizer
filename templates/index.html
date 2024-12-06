@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Arabic Letter Recognition</title>
+</head>
+<body>
+    <h1>Arabic Letter Recognition</h1>
+    <input type="file" id="fileInput" />
+    <button onclick="submitImage()">Submit</button>
+    <h3>Prediction:</h3>
+    <p id="result"></p>
+
+    <script>
+        async function submitImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            document.getElementById('result').innerText = `Predicted Letter: ${data.prediction}`;
+        }
+    </script>
+</body>
+</html>
+
